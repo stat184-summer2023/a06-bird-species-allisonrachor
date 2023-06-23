@@ -38,7 +38,7 @@ Before we begin, the book gives us some instructions to select a few key variabl
 
 ```{r}
 # Get the data table & clean up dates (see Data Computing eBook)
-OrdwayBirds2 <-
+OrdwayBirds <-
   OrdwayBirds %>%
   select( SpeciesName, Month, Day ) %>%
   mutate( Month = as.numeric(as.character(Month)), 
@@ -50,7 +50,7 @@ Corrected <-
   na.omit()  # cleaned up the missing ones
 
 # Inspect resulting data
-head(OrdwayBirds2)
+head(OrdwayBirds)
 head(Corrected)
 ```
 
@@ -58,7 +58,7 @@ head(Corrected)
 
 ### Step 1
 
-In the original data, there were 275 "unique" species names. However, that included a lot of spelling mistakes because once the data was cleaned further, spelling mistakes were fixed and only 108 unique names were found in the data set.
+The textbook points out the data set OrdwaySpeciesNames, which includes a variable called SpeciesNameCleaned. Summarizing both the original data set and the clean list, there are 166 more "unique" names in the original data set due to spelling mistakes (there were 275 unique names in OrdwayBirds and 109 in OrdwaySpeciesNames. 
 
 
 ```{r}
@@ -69,28 +69,35 @@ OrdwayBirds %>%
 
 
 # unique species in the clean list
-Corrected %>%
-  summarize(n_distinct(Species))
+OrdwaySpeciesNames %>%
+  summarize(n_distinct(SpeciesNameCleaned))
 
 ```
 
 
 ### Step 2
   
-
+Joining the two data sets created a table with the correct spelling of all the species names, along with two variables that record the month and the day of sighting. The variables Species in OrwayBirds and the variable SpeciesNameCleaned were used to join the data sets. The variable recording the names in the original data set changed to only include correct spelling.
 
 
 ```{r}
 # inspect OrdwaySpeciesNames
-
+data("OrdwaySpeciesNames")
+head(OrdwaySpeciesNames)
+tail(OrdwaySpeciesNames)
 
 # inner join
-
+Corrected <-
+  OrdwayBirds %>%
+  inner_join( OrdwaySpeciesNames ) %>% 
+  select( Species = SpeciesNameCleaned, Month, Day ) %>%
+  na.omit()  # cleaned up the missing ones
 
 
 
 # inspect the data after the join
-
+head(Corrected)
+summary(Corrected)
 
 ```
 
@@ -99,18 +106,31 @@ Corrected %>%
 
 We want to identify the top 5-6 bird species sighted at the Katherine Ordway Natural History Study Area.
 
+The Corrected data set was used to group the species names together to allow for a total of times each species was sighted could be counted. A threshold of 700 was set so that only the top 6 sighted birds would be considered a major species in the area.
+
 ```{r}
 # count sightings by species in descending order
-
-
-
+Corrected %>%
+  group_by(Species) %>%
+  summarize(count = n()) %>%
+  arrange(desc(count))
 
 # a hint in the text book recommends displaying the top 10 species to choose our threshold
 
-
+Corrected %>%
+  group_by(Species) %>%
+  summarize(count = n()) %>%
+  arrange(desc(count)) %>%
+  head(10)
 
 # define a sightings threshold; produce a table with only birds belonging to major species
+threshold = 700
 
+Majors <- Corrected %>%
+  group_by(Species) %>%
+  summarize(count = n()) %>%
+  filter(count >= threshold)
+head(Majors)
 
 
 
@@ -123,6 +143,15 @@ We now want to produce a month-by-month count for each of the major species, and
 
 ```{r}
 # prepare glyph-ready data table called `ByMonth`
+
+Majors2 <- c("American Goldfinch", "Black-capped Chickadee", "Field Sparrow", "Lincoln's Sparrow", "Slate-colored Junco")
+
+ByMonth <- Corrected %>% 
+  filter(Species %in% Majors2) %>%
+  group_by(Species, Month) %>%
+  summarize(count = sum(Month))
+
+
 
 
 
@@ -148,21 +177,25 @@ According to the graph, we can answer the questions posed:
 
 ##### 1. Which species are present year-round?  
 
-
+The only species seen year-round is the Black-capped Chickadee.
 
 ##### 2. Which species are migratory, that is, primarily present in one or two seasons?
 
-
+Slate-colored Junco an the Lincoln's Sparrow look like the only birds that are present in only 2 seasons.
 
 
 ##### 3. What is the peak month for each major species? (bullet list)
-
+American Goldfinch- October
+Black-capped Chickadee - September
+Field Sparrow - October
+Lincoln's Sparrow - May
+Slate-colored Junco - October
 
 
 
 ##### 4. Which major species are seen in good numbers for at least 6 months of the year?
 
-
+The American Goldfinch is the only species that is seen in decent numbers for at least 6 months.
 
 ```{r}
 
