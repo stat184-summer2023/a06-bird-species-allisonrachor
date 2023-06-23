@@ -1,7 +1,7 @@
 ---
 title: "Activity: Bird Species"
-author: "Your Names Here"
-date: "DUE DATE "
+author: "Allison Rachor"
+date: "6/23/23"
 output: html_notebook
 ---
 
@@ -10,17 +10,20 @@ output: html_notebook
 
 ```{r}
 # Load `tidyverse` and `dcData` packages
-
+library(tidyverse)
+library(dcData)
 
 
 
 # Load the `OrdwayBirds` data set into your RStudio environment from the `dcData` package
-
+data("OrdwayBirds")
 
 
 
 # Show a few commands used to inspect the data set a few different ways
-
+head(OrdwayBirds)
+tail(OrdwayBirds)
+summary(OrdwayBirds)
 
 
 ```
@@ -35,29 +38,39 @@ Before we begin, the book gives us some instructions to select a few key variabl
 
 ```{r}
 # Get the data table & clean up dates (see Data Computing eBook)
-
-
+OrdwayBirds2 <-
+  OrdwayBirds %>%
+  select( SpeciesName, Month, Day ) %>%
+  mutate( Month = as.numeric(as.character(Month)), 
+          Day = as.numeric(as.character(Day)))
+Corrected <-
+  OrdwayBirds %>%
+  inner_join( OrdwaySpeciesNames ) %>% 
+  select( Species = SpeciesNameCleaned, Month, Day ) %>%
+  na.omit()  # cleaned up the missing ones
 
 # Inspect resulting data
-
-
+head(OrdwayBirds2)
+head(Corrected)
 ```
 
 
 
 ### Step 1
 
-
+In the original data, there were 275 "unique" species names. However, that included a lot of spelling mistakes because once the data was cleaned further, spelling mistakes were fixed and only 108 unique names were found in the data set.
 
 
 ```{r}
 # unique species in original data (including mis-spellings)
+OrdwayBirds %>%
+  summarize(n_distinct(SpeciesName))
 
 
 
 # unique species in the clean list
-
-
+Corrected %>%
+  summarize(n_distinct(Species))
 
 ```
 
